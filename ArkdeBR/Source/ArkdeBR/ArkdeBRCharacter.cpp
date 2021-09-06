@@ -8,6 +8,10 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "AbilitySystemComponent.h"
+#include "ABR_AttributeSet.h"
+#include "ABR_GameplayAbility.h"
+#include "ArkdeBR/ArkdeBR.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AArkdeBRCharacter
@@ -45,6 +49,40 @@ AArkdeBRCharacter::AArkdeBRCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
+
+	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
+
+	AttributeSet = CreateDefaultSubobject<UABR_AttributeSet>(TEXT("AttributeSet"));
+}
+
+void AArkdeBRCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (IsValid(AbilitySystemComponent))
+	{
+		for (TSubclassOf<UABR_GameplayAbility>& CurrentAbility : StartingAbilities)
+		{
+			if (IsValid(CurrentAbility))
+			{
+				UABR_GameplayAbility* DefaultObj = CurrentAbility->GetDefaultObject<UABR_GameplayAbility>();
+				FGameplayAbilitySpec AbilitySpec(DefaultObj, 1, static_cast<int32>(DefaultObj->AbilityInputID), this);
+				AbilitySystemComponent->GiveAbility(AbilitySpec);
+			}
+		}
+
+		AbilitySystemComponent->InitAbilityActorInfo(this, this);
+	}
+}
+
+void AArkdeBRCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	if (IsValid(AbilitySystemComponent))
+	{
+		AbilitySystemComponent->RefreshAbilityActorInfo();
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -74,6 +112,23 @@ void AArkdeBRCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerI
 
 	// VR headset functionality
 	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AArkdeBRCharacter::OnResetVR);
+
+	// Setup Ability System Component inputs
+	AbilitySystemComponent->BindAbilityActivationToInputComponent(
+		PlayerInputComponent,
+		FGameplayAbilityInputBinds(
+			"Confirm",
+			"Cancel",
+			"EABR_AbilityInputID",
+			static_cast<int32>(EABR_AbilityInputID::Confirm),
+			static_cast<int32>(EABR_AbilityInputID::Cancel)
+		)
+	);
+}
+
+UAbilitySystemComponent* AArkdeBRCharacter::GetAbilitySystemComponent() const
+{
+	return AbilitySystemComponent;
 }
 
 
