@@ -44,13 +44,11 @@ void UABR_AttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 	{
 		Health.SetCurrentValue(FMath::Clamp(Health.GetCurrentValue(), 0.0f, MaxHealth.GetCurrentValue()));
 		Health.SetBaseValue(FMath::Clamp(Health.GetBaseValue(), 0.0f, MaxHealth.GetCurrentValue()));
-		UE_LOG(LogTemp, Warning, TEXT("Health changed: %f"), Health.GetCurrentValue());
 	}
 	else if (Data.EvaluatedData.Attribute.GetUProperty() == FindFieldChecked<FProperty>(UABR_AttributeSet::StaticClass(), GET_MEMBER_NAME_CHECKED(UABR_AttributeSet, Mana)))
 	{
 		Mana.SetCurrentValue(FMath::Clamp(Mana.GetCurrentValue(), 0.0f, MaxMana.GetCurrentValue()));
 		Mana.SetBaseValue(FMath::Clamp(Mana.GetBaseValue(), 0.0f, MaxMana.GetCurrentValue()));
-		UE_LOG(LogTemp, Warning, TEXT("Mana changed: %f"), Mana.GetCurrentValue());
 	}
 	else if (Data.EvaluatedData.Attribute.GetUProperty() == FindFieldChecked<FProperty>(UABR_AttributeSet::StaticClass(), GET_MEMBER_NAME_CHECKED(UABR_AttributeSet, Stamina)))
 	{
